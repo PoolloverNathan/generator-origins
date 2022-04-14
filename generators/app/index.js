@@ -17,13 +17,13 @@ module.exports = class extends Generator {
 
     const prompts = [
       {
-        type: "generatedMeta.pack.name",
-        name: "packName",
+        type: "input",
+        name: "generatedMeta.pack.name",
         message: "What would you like to name your pack?"
       },
       {
-        type: "generatedMeta.pack.description",
-        name: "packDesc",
+        type: "input",
+        name: "generatedMeta.pack.description",
         message: "How would you describe your pack?"
       } /*
       {
@@ -44,7 +44,7 @@ module.exports = class extends Generator {
         message: "Would you like the pack to be packagable for distribution?",
         choices: [
           { name: "Yes", value: "build", checked: true },
-          { name: "Compress distributed package", value: "compact", checked: true, disabled: false }
+          { name: "Compress distributed package", value: "compact", checked: true, disabled: ans => ans.building.includes("build") }
         ]
       },
 
