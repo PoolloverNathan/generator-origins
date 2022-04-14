@@ -43,9 +43,10 @@ module.exports = class extends Generator {
         name: "building",
         message: "Would you like the pack to be packagable for distribution?",
         choices: [
-          { name: "Yes", value: "build" }
+          { name: "Yes", value: "build", checked: true },
+          { name: "Compress distributed package", value: "compact", checked: true, disabled: false }
         ]
-      }
+      },
 
       /// IDENTIFICATION ///
 
@@ -63,6 +64,7 @@ module.exports = class extends Generator {
     ];
 
     const choices = await this.prompt(prompts);
+    this.fs.writeJSON("choices.dump", choices)
     this.choices = choices;
   }
 
