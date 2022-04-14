@@ -17,12 +17,12 @@ module.exports = class extends Generator {
 
     const prompts = [
       {
-        type: "input",
+        type: "generatedMeta.pack.name",
         name: "packName",
         message: "What would you like to name your pack?"
       },
       {
-        type: "input",
+        type: "generatedMeta.pack.description",
         name: "packDesc",
         message: "How would you describe your pack?"
       } /*
@@ -37,10 +37,33 @@ module.exports = class extends Generator {
         name: "identOk",
         message: "Would you like credit for your work?",
         default: true
+      },
+      {
+        type: "checkbox",
+        name: "building",
+        message: "Would you like the pack to be packagable for distribution?",
+        choices: [
+          { name: "Yes", value: "build" }
+        ]
+      }
+
+      /// IDENTIFICATION ///
+
+      {
+        when: ans => ans.identOk,
+        type: "checkbox",
+        name: "identTypes",
+        message: "What types of identification do you want?",
+        choices: [
+          { name: "Use my Github username", value: "github", short: "Github" },
+          { name: "Use an ident-string", value: "ident", short: "Ident-string" },
+          { name: "Use a separated user/email", value: "json", short: "Separated" }
+        ]
       }
     ];
 
     const choices = await this.prompt(prompts);
+    this.choices = choices;
   }
 
   writing() {
