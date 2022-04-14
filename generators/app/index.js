@@ -5,6 +5,7 @@ const chalk = require("chalk");
 const commandExists = require("command-exists");
 const { exec } = require("child_process");
 const { promisify } = require("util");
+const { basename, normalize } = require("path");
 const execP = promisify(exec);
 
 module.exports = class extends Generator {
@@ -48,6 +49,12 @@ module.exports = class extends Generator {
       },
       {
         type: "input",
+        name: "generatedMeta.pack.namespace",
+        message: "What should the ID of your pack be?",
+        default: ans => ans.generatedMeta.pack.name.replace(/\s+|-/, "_").replace(/\W/, "").toLowerCase()
+      },
+      {
+        type: "input",
         name: "generatedMeta.pack.description",
         message: "How would you describe your pack?"
       } /*
@@ -59,7 +66,7 @@ module.exports = class extends Generator {
       }, */,
       {
         type: "confirm",
-        name: "identOk",
+        name: "temp.identOk",
         message: "Would you like credit for your work?",
         default: true
       },
@@ -67,16 +74,16 @@ module.exports = class extends Generator {
       /// IDENTIFICATION ///
 
       {
-        when: ans => ans.identOk,
+        when: ans => ans.temp.identOk,
         type: "checkbox",
-        name: "identTypes",
+        name: "temp.identTypes",
         message: "What types of identification do you want?",
         choices: [
-          { name: "Use my Github username", value: "github", short: "Github" },
+          { name: "Use my Github username", value: "github", short: "GitHub" },
           {
             name: "Use an ident-string",
             value: "ident",
-            short: "Ident-string"
+            short: "Ident-string",
           },
           {
             name: "Use a separated user/email",
@@ -103,8 +110,16 @@ module.exports = class extends Generator {
     ];
 
     const choices = await this.prompt(prompts);
+    delete choices.temp;
     this.fs.writeJSON("choices.dump", choices);
     this.choices = choices;
+  }
+
+  async createIdFolder() {
+    // Checks if the namespace is different then the cwd name
+    if (basename(normalize(".")) !== this.choices.generatedMeta.pack.namespace /* wow, that's long */) {
+      
+    }
   }
 
   writing() {
