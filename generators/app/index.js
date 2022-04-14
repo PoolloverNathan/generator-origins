@@ -16,19 +16,23 @@ module.exports = class extends Generator {
       const gpgOutput = await execP('gpg -K --with-colons --keyid-format=long')
       for (let line of gpgOutput.stdout.split("\n")) {
         const [type,,,,, nid,, fingerprint,, uid] = line.split(":");
+        if (type === "uid") {
+          keyAry.push({name: `${chalk.blue(fingerprint.substr(-8))}: ${uid}`, value: fingerprint, short: fingerprint.substr(-8)})
+          // the above line was written in 2022, i don't know why something as good as substr would be depreciated
+        }
       }
       console.log(keyList);
     }
   }
   async prompting() {
-    // Have Yeoman greet the user.
-    this.log(
-      yosay(
-        `Welcome to the fantabulous ${chalk.red(
-          "generator-origins"
-        )} generator!`
-      )
-    );
+    // // Have Yeoman greet the user.
+    // this.log(
+    //   yosay(
+    //     `Welcome to the fantabulous ${chalk.red(
+    //       "generator-origins"
+    //     )} generator!`
+    //   )
+    // );
 
     const prompts = [
       {
@@ -76,7 +80,9 @@ module.exports = class extends Generator {
         message: "Would you like the pack to be packagable for distribution?"
       },
       {
-        type: ""
+        type: "list",
+        name: "build.signingKey",
+        message: "Which GPG key do you want to sign the releases with?"
       }
     ];
 
