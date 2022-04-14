@@ -2,28 +2,34 @@
 "use strict";
 const Generator = require("yeoman-generator");
 const chalk = require("chalk");
-const yosay = require("yosay");
-const commandExists = require("command-exists")
-const { exec } = require("child_process")
-const { promisify } = require("util")
-const execP = promisify(exec)
+const commandExists = require("command-exists");
+const { exec } = require("child_process");
+const { promisify } = require("util");
+const execP = promisify(exec);
 
 module.exports = class extends Generator {
   async initializing() {
-    const hasGpg = await commandExists("gpg")
-    const keyAry = [];
-    if (hasGpg) {
-      const gpgOutput = await execP('gpg -K --with-colons --keyid-format=long')
+    try {
+      await commandExists("gpg");
+      const keyAry = [];
+      const gpgOutput = await execP("gpg -K --with-colons --keyid-format=long");
       for (let line of gpgOutput.stdout.split("\n")) {
-        const [type,,,,, nid,, fingerprint,, uid] = line.split(":");
+        const [type, , , , , , , fingerprint, , uid] = line.split(":");
         if (type === "uid") {
-          keyAry.push({name: `${chalk.blue(fingerprint.substr(-8))}: ${uid}`, value: fingerprint, short: fingerprint.substr(-8)})
-          // the above line was written in 2022, i don't know why something as good as substr would be depreciated
+          keyAry.push({
+            name: `${chalk.blue(fingerprint.substr(-8))}: ${uid}`,
+            value: fingerprint,
+            short: fingerprint.substr(-8)
+          });
+          // The above line was written in 2022, i don't know why something as good as substr would be depreciated
         }
       }
-      console.log(keyList);
-    }
+
+      this.keys = keyAry;
+      console.log(keyAry);
+    } catch {}
   }
+
   async prompting() {
     // // Have Yeoman greet the user.
     // this.log(
@@ -67,8 +73,16 @@ module.exports = class extends Generator {
         message: "What types of identification do you want?",
         choices: [
           { name: "Use my Github username", value: "github", short: "Github" },
-          { name: "Use an ident-string", value: "ident", short: "Ident-string" },
-          { name: "Use a separated user/email", value: "json", short: "Separated" }
+          {
+            name: "Use an ident-string",
+            value: "ident",
+            short: "Ident-string"
+          },
+          {
+            name: "Use a separated user/email",
+            value: "json",
+            short: "Separated"
+          }
         ]
       },
 
@@ -81,13 +95,15 @@ module.exports = class extends Generator {
       },
       {
         type: "list",
+        when: this.keys && (ans => ans.build.enabled),
         name: "build.signingKey",
-        message: "Which GPG key do you want to sign the releases with?"
+        message: "Which GPG key do you want to sign the releases with?",
+        choices: [{ name: chalk.red("Do not sign"), value: null }, ...this.keys]
       }
     ];
 
     const choices = await this.prompt(prompts);
-    this.fs.writeJSON("choices.dump", choices)
+    this.fs.writeJSON("choices.dump", choices);
     this.choices = choices;
   }
 
@@ -96,9 +112,5 @@ module.exports = class extends Generator {
       this.templatePath("dummyfile.txt"),
       this.destinationPath("dummyfile.txt")
     );
-  }
-
-  install() {
-    this.installDependencies();
   }
 };
