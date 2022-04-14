@@ -11,10 +11,12 @@ const execP = promisify(exec)
 module.exports = class extends Generator {
   async initializing() {
     const hasGpg = await commandExists("gpg")
+    const keyAry = [];
     if (hasGpg) {
       const gpgOutput = await execP('gpg -K --with-colons --keyid-format=long')
-      const keyList = gpgOutput.stdout.split("\n").map(line => line.split(":")).filter(([type]) => type === "uid")
-
+      for (let line of gpgOutput.stdout.split("\n")) {
+        const [type,,,,, nid,, fingerprint,, uid] = line.split(":");
+      }
       console.log(keyList);
     }
   }
