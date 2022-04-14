@@ -4,11 +4,19 @@ const Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
 const commandExists = require("command-exists")
+const { exec } = require("child_process")
+const { promisify } = require("util")
+const execP = promisify(exec)
 
 module.exports = class extends Generator {
-  
+  async initializing() {
+    const hasGpg = await commandExists("gpg")
+    if (hasGpg) {
+      const keyList = await execP('gpg -K --with-colons --keyid-format=long')
+      console.log(keyList);
+    }
+  }
   async prompting() {
-    const hasGpg = commandExists("gpg")
     // Have Yeoman greet the user.
     this.log(
       yosay(
@@ -41,16 +49,6 @@ module.exports = class extends Generator {
         message: "Would you like credit for your work?",
         default: true
       },
-      {
-        type: "checkbox",
-        name: "building",
-        message: "Would you like the pack to be packagable for distribution?",
-        choices: [
-          { name: "Yes", value: "build", checked: true },
-          { name: "Compress distributed package", value: "compact", checked: true, disabled: ans => !ans.building.includes("build") },
-          { name: "Sign the resulting zip", value: "sign", checked: false, disabled: ans => hasGpg && !ans.building.includes("build") }
-        ]
-      },
 
       /// IDENTIFICATION ///
 
@@ -64,6 +62,17 @@ module.exports = class extends Generator {
           { name: "Use an ident-string", value: "ident", short: "Ident-string" },
           { name: "Use a separated user/email", value: "json", short: "Separated" }
         ]
+      },
+
+      /// BUILDING ///
+
+      {
+        type: "confirm",
+        name: "build.enabled",
+        message: "Would you like the pack to be packagable for distribution?"
+      },
+      {
+        type: ""
       }
     ];
 
