@@ -12,7 +12,9 @@ module.exports = class extends Generator {
   async initializing() {
     const hasGpg = await commandExists("gpg")
     if (hasGpg) {
-      const keyList = await execP('gpg -K --with-colons --keyid-format=long')
+      const gpgOutput = await execP('gpg -K --with-colons --keyid-format=long')
+      const keyList = gpgOutput.stdout.split("\n").map(line => line.split(":")).filter(([type]) => type === "uid")
+
       console.log(keyList);
     }
   }
