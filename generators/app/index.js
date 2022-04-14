@@ -3,9 +3,12 @@
 const Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
+const commandExists = require("command-exists")
 
 module.exports = class extends Generator {
+  
   async prompting() {
+    const hasGpg = commandExists("gpg")
     // Have Yeoman greet the user.
     this.log(
       yosay(
@@ -44,7 +47,8 @@ module.exports = class extends Generator {
         message: "Would you like the pack to be packagable for distribution?",
         choices: [
           { name: "Yes", value: "build", checked: true },
-          { name: "Compress distributed package", value: "compact", checked: true, disabled: ans => ans.building.includes("build") }
+          { name: "Compress distributed package", value: "compact", checked: true, disabled: ans => !ans.building.includes("build") },
+          { name: "Sign the resulting zip", value: "sign", checked: false, disabled: ans => hasGpg && !ans.building.includes("build") }
         ]
       },
 
